@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tính chất hai đường thẳng song song – Toán 7</title>
+  <style>
+    :root {
+      --ink: #19334a;
+      --muted: #5d6d7c;
+      --bg: #eef4f7;
+      --paper: #fff;
+      --blue: #176b87;
+      --blue-soft: #e7f3f7;
+      --b-color: #d86636;
+      --cut-color: #6a54a3;
+      --alt: #f4b63f;
+      --corr: #23a17b;
+      --green: #1d805d;
+      --red: #ae3a4e;
+      --line: #ccd9df;
+      --shadow: 0 10px 28px rgba(25, 51, 74, .09);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: linear-gradient(140deg, #f9fbfc, var(--bg));
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      font-size: 18px;
+      line-height: 1.42;
+    }
+    button, input { font: inherit; }
+    button:focus-visible, input:focus-visible, .drag-line:focus-visible { outline: 4px solid rgba(23,107,135,.28); outline-offset: 3px; }
+    [hidden] { display: none !important; }
+
+    .page { width: min(1400px, 100%); margin: 0 auto; padding: 16px clamp(14px, 2vw, 28px) 30px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
+    h1 { margin: 0; font-size: clamp(1.5rem, 2.35vw, 2.15rem); line-height: 1.16; letter-spacing: -.02em; }
+    .subtitle { margin: 4px 0 0; color: var(--muted); font-size: .96rem; }
+    .grade-tag { padding: 8px 14px; border-radius: 999px; background: var(--blue-soft); color: var(--blue); font-weight: 900; white-space: nowrap; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(315px, 390px); gap: 18px; align-items: start; }
+    .card { background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+    .stage-card { overflow: hidden; }
+    .stage-head { display: flex; align-items: center; justify-content: center; padding: 12px 16px; border-bottom: 1px solid var(--line); background: #fbfdfe; }
+    .modes { display: flex; flex-wrap: wrap; gap: 8px; }
+    .mode-btn { min-height: 44px; padding: 8px 13px; border: 2px solid var(--line); border-radius: 11px; background: white; color: var(--ink); font-weight: 850; cursor: pointer; }
+    .mode-btn[aria-pressed="true"] { border-color: var(--blue); background: var(--blue); color: white; }
+
+    .svg-wrap { padding: 2px 8px 0; background: radial-gradient(circle at center, #fff, #f6fafb); }
+    svg { display: block; width: 100%; height: auto; min-height: 365px; max-height: 500px; touch-action: none; }
+    .geom-line { stroke-width: 7; stroke-linecap: round; }
+    .line-a { stroke: var(--blue); }
+    .line-b { stroke: var(--b-color); }
+    .line-c { stroke: var(--cut-color); }
+    .drag-hit { stroke: transparent; stroke-width: 32; cursor: grab; }
+    .drag-hit:active { cursor: grabbing; }
+    .handle { stroke: white; stroke-width: 4; filter: drop-shadow(0 3px 5px rgba(0,0,0,.2)); cursor: grab; }
+    .point { fill: white; stroke: var(--ink); stroke-width: 3; }
+    .svg-label { font-size: 25px; font-weight: 900; paint-order: stroke; stroke: white; stroke-width: 6px; stroke-linejoin: round; }
+    .angle-sector { stroke-width: 3; transition: opacity .18s ease, filter .18s ease; }
+    .angle-sector.equal { filter: drop-shadow(0 0 8px currentColor); }
+    .angle-label { font-size: 20px; font-weight: 900; text-anchor: middle; dominant-baseline: middle; paint-order: stroke; stroke: white; stroke-width: 5px; }
+
+    .measure-strip { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 14px; padding: 13px 18px; border-top: 1px solid var(--line); background: #fbfdfe; }
+    .measure { padding: 8px 12px; border-radius: 12px; background: white; text-align: center; }
+    .measure small { display: block; color: var(--muted); font-weight: 750; }
+    .measure strong { display: block; margin-top: 1px; font-size: clamp(1.3rem, 2.4vw, 2rem); font-variant-numeric: tabular-nums; }
+    .relation { min-width: 48px; color: var(--muted); font-size: 2rem; font-weight: 900; text-align: center; }
+    .parallel-banner { margin: 0 18px 14px; padding: 9px 13px; border-radius: 11px; background: #f7e9ec; color: #8f2e41; text-align: center; font-weight: 900; }
+    .parallel-banner.yes { background: #def4e8; color: #176947; border: 2px solid #76bfa0; }
+
+    .panel { padding: 18px; }
+    .panel h2 { margin: 0 0 12px; font-size: 1.16rem; }
+    .control { margin-bottom: 14px; }
+    .control-head { margin-bottom: 4px; font-weight: 850; }
+    input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--blue); cursor: pointer; }
+    .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    button.action { min-height: 48px; padding: 8px 12px; border: 2px solid transparent; border-radius: 11px; background: #e8eef1; color: var(--ink); font-weight: 850; cursor: pointer; }
+    button.action:hover, .mode-btn:hover { filter: brightness(.97); }
+    button.primary { background: var(--blue); color: white; }
+    button.success { border-color: var(--green); background: white; color: #176947; }
+
+    .live-note { min-height: 63px; margin-top: 14px; padding: 11px 13px; border-left: 5px solid #e0a83d; border-radius: 10px; background: #fff8e8; color: #654d20; font-weight: 700; }
+    .questions { margin-top: 12px; padding: 14px; border-radius: 13px; background: #f4f7f9; }
+    .questions h3 { margin: 0 0 6px; font-size: 1rem; }
+    .questions ol { margin: 0; padding-left: 23px; }
+    .questions li + li { margin-top: 8px; }
+    .notes-button { width: 100%; margin-top: 12px; border-color: var(--green) !important; background: white !important; color: #176947 !important; }
+
+    .cornell { margin-top: 18px; overflow: hidden; border: 3px solid #58a982; border-radius: 18px; background: white; box-shadow: var(--shadow); }
+    .cornell-title { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 20px; background: #dff3e8; color: #165b40; }
+    .cornell-title h2 { margin: 0; font-size: 1.25rem; }
+    .cornell-title span { font-weight: 850; }
+    .cornell-grid { display: grid; grid-template-columns: minmax(220px, 27%) 1fr; }
+    .cornell-cues, .cornell-notes { padding: 20px 22px; }
+    .cornell-cues { border-right: 2px solid #9cb7a8; background: #f7fbf8; }
+    .cornell h3 { margin: 0 0 9px; font-size: 1.05rem; color: #315846; }
+    .keyword-card { margin: 0; padding: 14px 15px; border-radius: 10px; background: #e8f4ed; color: #175b40; font-size: 1.08rem; font-weight: 900; text-align: center; }
+    .property-box { margin: 5px 0 0; padding: 15px 17px; border-left: 6px solid var(--green); border-radius: 10px; background: #eaf7ef; font-size: clamp(1.05rem, 1.8vw, 1.25rem); font-weight: 900; }
+    .property-box p { margin: 0; }
+    .property-box ul { margin: 10px 0 0; padding-left: 26px; }
+    .property-box li + li { margin-top: 8px; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; }
+      .panel h2, .button-grid, .live-note, .questions { grid-column: 1 / -1; }
+    }
+    @media (max-width: 640px) {
+      body { font-size: 16px; }
+      .grade-tag { display: none; }
+      .panel { display: block; }
+      .button-grid { grid-template-columns: 1fr; }
+      .cornell-grid { grid-template-columns: 1fr; }
+      .cornell-cues { border-right: 0; border-bottom: 2px solid #9cb7a8; }
+      .cornell-title { align-items: flex-start; flex-direction: column; }
+      svg { min-height: 300px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <h1>Tính chất của hai đường thẳng song song</h1>
+        <p class="subtitle">Thay đổi điều kiện, quan sát số đo và kiểm chứng dự đoán.</p>
+      </div>
+      <div class="grade-tag">Toán 7 · GV trình chiếu</div>
+    </header>
+
+    <section class="layout" aria-label="Mô hình quan sát tính chất góc">
+      <div class="card stage-card">
+        <div class="stage-head">
+          <div class="modes" role="group" aria-label="Chọn cặp góc cần quan sát">
+            <button type="button" class="mode-btn" id="alternateBtn" aria-pressed="true">Góc so le trong</button>
+            <button type="button" class="mode-btn" id="correspondingBtn" aria-pressed="false">Góc đồng vị</button>
+          </div>
+        </div>
+
+        <div class="svg-wrap">
+          <svg id="diagram" viewBox="0 0 900 460" role="img" aria-labelledby="svgTitle svgDesc">
+            <title id="svgTitle">Hai đường thẳng và một đường cắt</title>
+            <desc id="svgDesc">Đường màu xanh được giữ cố định. Đường màu cam có thể xoay. Đường màu tím cắt cả hai đường. Mỗi lần chỉ có một cặp góc được tô nổi bật.</desc>
+            <g id="geometry">
+              <line id="lineA" class="geom-line line-a"/>
+              <line id="hitB" class="drag-hit drag-line" tabindex="0" role="slider" aria-label="Xoay đường thẳng màu cam" aria-valuemin="-18" aria-valuemax="18" aria-valuenow="11.5"/>
+              <line id="lineB" class="geom-line line-b"/>
+              <circle id="handleB" class="handle" r="10" fill="#d86636"/>
+              <line id="hitC" class="drag-hit drag-line" tabindex="0" role="slider" aria-label="Xoay đường cắt màu tím" aria-valuemin="32" aria-valuemax="74" aria-valuenow="55"/>
+              <line id="lineC" class="geom-line line-c"/>
+              <circle id="handleC" class="handle" r="10" fill="#6a54a3"/>
+              <path id="arc1" class="angle-sector"/>
+              <path id="arc2" class="angle-sector"/>
+              <text id="arcLabel1" class="angle-label">1</text>
+              <text id="arcLabel2" class="angle-label">2</text>
+              <circle id="pointP" class="point" r="5"/>
+              <circle id="pointQ" class="point" r="5"/>
+              <text class="svg-label" x="814" y="135" fill="#176b87">a</text>
+              <text id="labelB" class="svg-label" fill="#bd4e20">b</text>
+              <text id="labelC" class="svg-label" fill="#5d438f">c</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="measure-strip" aria-live="polite">
+          <div class="measure"><small>Góc thứ nhất</small><strong id="measure1">—</strong></div>
+          <div class="relation" id="relationSign" aria-label="Quan hệ giữa hai góc">≠</div>
+          <div class="measure"><small>Góc thứ hai</small><strong id="measure2">—</strong></div>
+        </div>
+        <div class="parallel-banner" id="parallelBanner">Hai đường thẳng chưa song song.</div>
+      </div>
+
+      <aside class="card panel">
+        <h2>Điều khiển quan sát</h2>
+        <div class="control">
+          <div class="control-head"><label for="sliderB">Xoay đường thẳng màu cam</label></div>
+          <input id="sliderB" type="range" min="-18" max="18" step="0.1" value="11.5">
+        </div>
+        <div class="control">
+          <div class="control-head"><label for="sliderC">Xoay đường cắt màu tím</label></div>
+          <input id="sliderC" type="range" min="32" max="74" step="0.1" value="55">
+        </div>
+        <div class="button-grid">
+          <button type="button" class="action primary" id="parallelBtn">Đưa hai đường về song song</button>
+          <button type="button" class="action" id="measureBtn" aria-pressed="true">Ẩn số đo</button>
+          <button type="button" class="action" id="questionsBtn" aria-expanded="false">Hiện câu hỏi</button>
+          <button type="button" class="action" id="resetBtn">Làm lại</button>
+        </div>
+        <div class="live-note" id="liveNote" role="status">Hãy kéo đường màu cam đến gần đường màu xanh và quan sát hai số đo.</div>
+        <div class="questions" id="questions" hidden>
+          <h3>Cùng quan sát và trả lời</h3>
+          <ol>
+            <li>Khi hai đường chưa song song, hai góc đang tô có bằng nhau không?</li>
+            <li>Kéo đường màu cam đến khi song song với đường màu xanh. Hai số đo lúc này thế nào?</li>
+            <li>Giữ hai đường song song rồi xoay đường màu tím. Số đo có thay đổi không? Hai góc còn bằng nhau không?</li>
+            <li>Nếu hai đường thẳng song song, ta có thể kết luận gì về hai góc ở vị trí đồng vị hoặc hai góc ở vị trí so le trong?</li>
+          </ol>
+          <button type="button" class="action notes-button" id="notesBtn" aria-expanded="false">Hiện ghi chép</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="cornell" id="cornellNote" aria-labelledby="cornellTitle" hidden>
+      <div class="cornell-title">
+        <h2 id="cornellTitle">Ghi chép Cornell · Tính chất của hai đường thẳng song song</h2>
+        <span>Nội dung cần ghi nhớ</span>
+      </div>
+      <div class="cornell-grid">
+        <div class="cornell-cues">
+          <h3>Từ khóa</h3>
+          <p class="keyword-card">Tính chất hai đường thẳng song song</p>
+        </div>
+        <div class="cornell-notes">
+          <h3>Tính chất</h3>
+          <div class="property-box">
+            <p>Nếu một đường thẳng cắt hai đường thẳng song song thì:</p>
+            <ul>
+              <li>Hai góc so le trong bằng nhau;</li>
+              <li>Hai góc đồng vị bằng nhau.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const A = { x: 450, y: 150 };
+      const B = { x: 450, y: 330 };
+      const C = { x: 450, y: 240 };
+      const EXTENT = 700;
+      const SNAP = 0.65;
+      const initial = { beta: 11.5, theta: 55 };
+      const state = { beta: initial.beta, theta: initial.theta, mode: 'alternate', measuresVisible: true };
+      const $ = (selector) => document.querySelector(selector);
+      const elements = {
+        diagram: $('#diagram'), lineA: $('#lineA'), lineB: $('#lineB'), lineC: $('#lineC'), hitB: $('#hitB'), hitC: $('#hitC'),
+        handleB: $('#handleB'), handleC: $('#handleC'), labelB: $('#labelB'), labelC: $('#labelC'),
+        pointP: $('#pointP'), pointQ: $('#pointQ'),
+        arc1: $('#arc1'), arc2: $('#arc2'), arcLabel1: $('#arcLabel1'), arcLabel2: $('#arcLabel2'),
+        sliderB: $('#sliderB'), sliderC: $('#sliderC'),
+        measure1: $('#measure1'), measure2: $('#measure2'), relationSign: $('#relationSign'),
+        parallelBanner: $('#parallelBanner'), liveNote: $('#liveNote'), cornellNote: $('#cornellNote')
+      };
+
+      function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+      function rad(degrees) { return degrees * Math.PI / 180; }
+      function vector(angle) { return { x: Math.cos(rad(angle)), y: -Math.sin(rad(angle)) }; }
+      function negative(v) { return { x: -v.x, y: -v.y }; }
+      function cross(u, v) { return u.x * v.y - u.y * v.x; }
+      function subtract(p, q) { return { x: p.x - q.x, y: p.y - q.y }; }
+      function isParallel() { return Math.abs(state.beta) < 0.0001; }
+
+      function intersection(p1, d1, p2, d2) {
+        const denominator = cross(d1, d2);
+        if (Math.abs(denominator) < 1e-9) return null;
+        const t = cross(subtract(p2, p1), d2) / denominator;
+        return { x: p1.x + t * d1.x, y: p1.y + t * d1.y };
+      }
+
+      function angleBetween(u, v) {
+        const dot = u.x * v.x + u.y * v.y;
+        return Math.atan2(Math.abs(cross(u, v)), dot) * 180 / Math.PI;
+      }
+
+      function lineCoordinates(origin, direction) {
+        return {
+          x1: origin.x - EXTENT * direction.x, y1: origin.y - EXTENT * direction.y,
+          x2: origin.x + EXTENT * direction.x, y2: origin.y + EXTENT * direction.y
+        };
+      }
+
+      function setLine(element, coords) {
+        Object.entries(coords).forEach(([name, value]) => element.setAttribute(name, value));
+      }
+
+      function screenAngle(v) { return Math.atan2(v.y, v.x) * 180 / Math.PI; }
+      function shortestDelta(start, end) { return ((end - start + 540) % 360) - 180; }
+
+      function sectorData(center, firstRay, secondRay, radius) {
+        const start = screenAngle(firstRay);
+        const end = screenAngle(secondRay);
+        const delta = shortestDelta(start, end);
+        const endActual = start + delta;
+        const sx = center.x + radius * Math.cos(rad(start));
+        const sy = center.y + radius * Math.sin(rad(start));
+        const ex = center.x + radius * Math.cos(rad(endActual));
+        const ey = center.y + radius * Math.sin(rad(endActual));
+        const sweep = delta >= 0 ? 1 : 0;
+        const path = `M ${center.x} ${center.y} L ${sx} ${sy} A ${radius} ${radius} 0 0 ${sweep} ${ex} ${ey} Z`;
+        const middle = start + delta / 2;
+        const labelRadius = radius + 24;
+        return {
+          path,
+          labelX: center.x + labelRadius * Math.cos(rad(middle)),
+          labelY: center.y + labelRadius * Math.sin(rad(middle))
+        };
+      }
+
+      function format(value) {
+        const clean = Math.abs(value) < .05 ? 0 : value;
+        return clean.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '°';
+      }
+
+      function setArc(pathElement, labelElement, data, color, equal) {
+        pathElement.setAttribute('d', data.path);
+        pathElement.setAttribute('fill', color);
+        pathElement.setAttribute('fill-opacity', equal ? '.48' : '.31');
+        pathElement.setAttribute('stroke', color);
+        pathElement.style.color = color;
+        pathElement.classList.toggle('equal', equal);
+        labelElement.setAttribute('x', data.labelX);
+        labelElement.setAttribute('y', data.labelY);
+        labelElement.setAttribute('fill', color);
+      }
+
+      function render() {
+        const da = vector(0);
+        const db = vector(state.beta);
+        const dc = vector(state.theta);
+        const p = intersection(A, da, C, dc);
+        const q = intersection(B, db, C, dc);
+        const parallel = isParallel();
+
+        const coordsA = lineCoordinates(A, da);
+        const coordsB = lineCoordinates(B, db);
+        const coordsC = lineCoordinates(C, dc);
+        setLine(elements.lineA, coordsA);
+        setLine(elements.lineB, coordsB); setLine(elements.hitB, coordsB);
+        setLine(elements.lineC, coordsC); setLine(elements.hitC, coordsC);
+
+        elements.handleB.setAttribute('cx', B.x + 190 * db.x); elements.handleB.setAttribute('cy', B.y + 190 * db.y);
+        elements.handleC.setAttribute('cx', C.x + 175 * dc.x); elements.handleC.setAttribute('cy', C.y + 175 * dc.y);
+        elements.labelB.setAttribute('x', B.x + 365 * db.x); elements.labelB.setAttribute('y', B.y + 365 * db.y - 12);
+        elements.labelC.setAttribute('x', C.x - 230 * dc.x - 25); elements.labelC.setAttribute('y', C.y - 230 * dc.y);
+
+        elements.pointP.setAttribute('cx', p.x); elements.pointP.setAttribute('cy', p.y);
+        elements.pointQ.setAttribute('cx', q.x); elements.pointQ.setAttribute('cy', q.y);
+        let rays1, rays2;
+        if (state.mode === 'alternate') {
+          rays1 = [da, negative(dc)];
+          rays2 = [negative(db), dc];
+        } else {
+          rays1 = [da, dc];
+          rays2 = [db, dc];
+        }
+        const value1 = angleBetween(rays1[0], rays1[1]);
+        const value2 = angleBetween(rays2[0], rays2[1]);
+        const color = state.mode === 'alternate' ? '#e5a11d' : '#17906d';
+        setArc(elements.arc1, elements.arcLabel1, sectorData(p, rays1[0], rays1[1], 43), color, parallel);
+        setArc(elements.arc2, elements.arcLabel2, sectorData(q, rays2[0], rays2[1], 43), color, parallel);
+
+        elements.sliderB.value = state.beta;
+        elements.sliderC.value = state.theta;
+        elements.hitB.setAttribute('aria-valuenow', state.beta.toFixed(1));
+        elements.hitC.setAttribute('aria-valuenow', state.theta.toFixed(1));
+        elements.hitB.setAttribute('aria-valuetext', parallel ? 'Hai đường thẳng đã song song' : 'Hai đường thẳng chưa song song');
+
+        elements.measure1.textContent = state.measuresVisible ? format(value1) : '?°';
+        elements.measure2.textContent = state.measuresVisible ? format(value2) : '?°';
+        elements.relationSign.textContent = state.measuresVisible ? (parallel ? '=' : '≠') : '?';
+        elements.parallelBanner.textContent = parallel ? 'Hai đường thẳng đã song song. Hai góc đang tô có số đo bằng nhau.' : 'Hai đường thẳng chưa song song.';
+        elements.parallelBanner.classList.toggle('yes', parallel);
+
+        if (parallel) {
+          elements.liveNote.textContent = 'Hãy xoay đường màu tím. Số đo cụ thể thay đổi nhưng hai góc vẫn bằng nhau.';
+        } else if (Math.abs(state.beta) <= 3) {
+          elements.liveNote.textContent = 'Hai đường đang gần song song. Hai số đo cũng đang gần bằng nhau.';
+        } else {
+          elements.liveNote.textContent = 'Hai đường chưa song song nên hai góc đang tô có số đo khác nhau.';
+        }
+      }
+
+      function setBeta(value) {
+        let next = clamp(Number(value), -18, 18);
+        if (Math.abs(next) <= SNAP) next = 0;
+        state.beta = Math.round(next * 10) / 10;
+        render();
+      }
+      function setTheta(value) {
+        state.theta = Math.round(clamp(Number(value), 32, 74) * 10) / 10;
+        render();
+      }
+
+      elements.sliderB.addEventListener('input', (event) => setBeta(event.target.value));
+      elements.sliderC.addEventListener('input', (event) => setTheta(event.target.value));
+
+      function svgPoint(event) {
+        const point = elements.diagram.createSVGPoint();
+        point.x = event.clientX; point.y = event.clientY;
+        return point.matrixTransform(elements.diagram.getScreenCTM().inverse());
+      }
+
+      function bindDrag(kind, hit, handle, origin) {
+        let dragging = false;
+        const start = (event) => { dragging = true; hit.setPointerCapture(event.pointerId); event.preventDefault(); };
+        const move = (event) => {
+          if (!dragging) return;
+          const p = svgPoint(event);
+          let mathAngle = -Math.atan2(p.y - origin.y, p.x - origin.x) * 180 / Math.PI;
+          if (kind === 'b') {
+            if (mathAngle > 90) mathAngle -= 180;
+            if (mathAngle < -90) mathAngle += 180;
+            setBeta(mathAngle);
+          } else {
+            if (mathAngle < 0) mathAngle += 180;
+            if (mathAngle > 90) mathAngle = 180 - mathAngle;
+            setTheta(mathAngle);
+          }
+        };
+        const end = (event) => {
+          if (!dragging) return;
+          dragging = false;
+          try { hit.releasePointerCapture(event.pointerId); } catch (_) { /* pointer already released */ }
+        };
+        [hit, handle].forEach((target) => {
+          target.addEventListener('pointerdown', start);
+          target.addEventListener('pointermove', move);
+          target.addEventListener('pointerup', end);
+          target.addEventListener('pointercancel', end);
+        });
+        hit.addEventListener('keydown', (event) => {
+          const step = event.shiftKey ? 5 : 1;
+          const current = kind === 'b' ? state.beta : state.theta;
+          if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') { kind === 'b' ? setBeta(current - step) : setTheta(current - step); event.preventDefault(); }
+          if (event.key === 'ArrowRight' || event.key === 'ArrowUp') { kind === 'b' ? setBeta(current + step) : setTheta(current + step); event.preventDefault(); }
+        });
+      }
+
+      bindDrag('b', elements.hitB, elements.handleB, B);
+      bindDrag('c', elements.hitC, elements.handleC, C);
+
+      function chooseMode(mode) {
+        state.mode = mode;
+        $('#alternateBtn').setAttribute('aria-pressed', String(mode === 'alternate'));
+        $('#correspondingBtn').setAttribute('aria-pressed', String(mode === 'corresponding'));
+        render();
+      }
+      $('#alternateBtn').addEventListener('click', () => chooseMode('alternate'));
+      $('#correspondingBtn').addEventListener('click', () => chooseMode('corresponding'));
+
+      $('#parallelBtn').addEventListener('click', () => setBeta(0));
+      $('#measureBtn').addEventListener('click', (event) => {
+        state.measuresVisible = !state.measuresVisible;
+        event.currentTarget.textContent = state.measuresVisible ? 'Ẩn số đo' : 'Hiện số đo';
+        event.currentTarget.setAttribute('aria-pressed', String(state.measuresVisible));
+        render();
+      });
+
+      function toggleRegion(button, region, showLabel, hideLabel) {
+        const willShow = region.hidden;
+        region.hidden = !willShow;
+        button.textContent = willShow ? hideLabel : showLabel;
+        button.setAttribute('aria-expanded', String(willShow));
+        return willShow;
+      }
+      $('#questionsBtn').addEventListener('click', (event) => toggleRegion(event.currentTarget, $('#questions'), 'Hiện câu hỏi', 'Ẩn câu hỏi'));
+      $('#notesBtn').addEventListener('click', (event) => {
+        const shown = toggleRegion(event.currentTarget, elements.cornellNote, 'Hiện ghi chép', 'Ẩn ghi chép');
+        if (shown) elements.cornellNote.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      $('#resetBtn').addEventListener('click', () => {
+        Object.assign(state, { beta: initial.beta, theta: initial.theta, mode: 'alternate', measuresVisible: true });
+        $('#measureBtn').textContent = 'Ẩn số đo';
+        $('#measureBtn').setAttribute('aria-pressed', 'true');
+        $('#questions').hidden = true;
+        $('#questionsBtn').textContent = 'Hiện câu hỏi';
+        $('#questionsBtn').setAttribute('aria-expanded', 'false');
+        elements.cornellNote.hidden = true;
+        $('#notesBtn').textContent = 'Hiện ghi chép';
+        $('#notesBtn').setAttribute('aria-expanded', 'false');
+        chooseMode('alternate');
+      });
+
+      window.__parallelActivity = {
+        set(beta, theta, mode = state.mode) { state.mode = mode; setTheta(theta); setBeta(beta); },
+        getGeometry() {
+          const da = vector(0), db = vector(state.beta), dc = vector(state.theta);
+          const rays1 = state.mode === 'alternate' ? [da, negative(dc)] : [da, dc];
+          const rays2 = state.mode === 'alternate' ? [negative(db), dc] : [db, dc];
+          const angle1 = angleBetween(rays1[0], rays1[1]);
+          const angle2 = angleBetween(rays2[0], rays2[1]);
+          return { beta: state.beta, theta: state.theta, mode: state.mode, angle1, angle2, delta: Math.abs(angle1 - angle2), parallel: isParallel(), notesVisible: !elements.cornellNote.hidden };
+        },
+        snapThreshold: SNAP
+      };
+
+      chooseMode('alternate');
+    })();
+  </script>
+</body>
+</html>
